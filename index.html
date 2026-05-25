@@ -14,7 +14,7 @@
         :root { --daraz-orange: #f57224; }
         body { font-family: Roboto, Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; color: #212121; }
         
-        /* 🔒 গুগল লগইন স্ক্রিন স্টাইল */
+        /* 🔒 গুগল লগইন স্ক্রিন */
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: flex; justify-content: center; align-items: center; }
         .login-box { background: white; padding: 40px; border-radius: 8px; text-align: center; max-width: 360px; width: 100%; box-sizing: border-box; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
         .login-box h2 { margin: 0 0 10px 0; color: var(--daraz-orange); font-size: 32px; font-weight: bold; }
@@ -69,7 +69,7 @@
         .checkout-overlay, .details-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1500; display: none; justify-content: center; align-items: center; }
         .checkout-page { background: white; width: 100%; max-width: 650px; border-radius: 4px; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; position: relative; }
         .checkout-close { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #9e9e9e; z-index: 10; }
-        .checkout-left { padding: 25px; border-right: 1px solid #eff0f5; }
+        .checkout-left { padding: 25px; border-right: 1px solid #eff0f5; max-height: 480px; overflow-y: auto; }
         .checkout-right { padding: 25px; background: #fafafa; display: flex; flex-direction: column; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #757575; font-weight: bold; }
@@ -169,10 +169,14 @@
             <h3>ডেলিভারি তথ্য (Shipping)</h3>
             <div class="form-group"><label>আপনার নাম *</label><input type="text" id="custName" required></div>
             <div class="form-group"><label>মোবাইল নাম্বার *</label><input type="tel" id="custPhone" placeholder="017XXXXXXXX" required></div>
-            <div class="form-group"><label>ডেলিভারি ঠিকানা *</label><textarea id="custAddress" rows="3" placeholder="ঠিকানা লিখুন..." required></textarea></div>
+            
+            <div class="form-group"><label>জেলা (District) *</label><input type="text" id="custDistrict" placeholder="যেমন: ঢাকা" required></div>
+            <div class="form-group"><label>উপজেলা (Upazila) *</label><input type="text" id="custUpazila" placeholder="যেমন: কালকিনি" required></div>
+            <div class="form-group"><label>গ্রাম / এলাকা (Village/Area) *</label><input type="text" id="custVillage" placeholder="যেমন: নতুন বাজার" required></div>
+            
             <div class="form-group"><label>পেমেন্ট মেথড *</label>
-                <select id="paymentMethod">
-                    <option value="Cash on Delivery">Cash on Delivery</option>
+                <select id="paymentMethod" onchange="recalculateDeliveryCharge()">
+                    <option value="Cash on Delivery">Cash on Delivery (COD)</option>
                     <option value="bKash">bKash (বিকাশ)</option>
                     <option value="Nagad">Nagad (নগদ)</option>
                 </select>
@@ -182,7 +186,11 @@
             <h3>অর্ডার সামারি</h3>
             <div class="summary-items-list" id="checkoutItemsList"></div>
             <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Subtotal:</span><span>৳<span id="subTotalAmt">0</span></span></div>
-            <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Delivery:</span><span>৳<span>60</span></span></div>
+            
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span>Delivery Cost:</span><span>৳<span id="deliveryCostAmt">80</span></span>
+            </div>
+            
             <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--daraz-orange); font-size:18px; margin-top:10px; border-top:1px solid #ddd; padding-top:10px;">
                 <span>Total:</span><span>৳<span id="finalBillAmt">0</span></span>
             </div>
@@ -192,9 +200,7 @@
 </div>
 
 <script>
-    // =========================================================================
-    // ⚙️ ১. আপনার ফায়ারবেস কনফিগারেশন
-    // =========================================================================
+    // ⚙️ আপনার ফায়ারবেস কনফিগারেশন
     const firebaseConfig = {
         apiKey: "AIzaSyCsSA9zpK2hXCNOB7SJCkcqNtFNUgDYXdU",
         authDomain: "rye-on-shop.firebaseapp.com",
@@ -216,9 +222,7 @@
     let checkoutItems = [];
     const DEFAULT_FALLBACK_IMG = "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=400&q=80";
 
-    // =========================================================================
-    // 🔒 ২. গুগল অ্যাকাউন্ট লগইন প্রসেস
-    // =========================================================================
+    // 🔒 গুগল অ্যাকাউন্ট লগইন প্রসেস
     function loginWithRealGoogle() {
         provider.setCustomParameters({ prompt: 'select_account' });
 
@@ -230,12 +234,10 @@
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
             
-            // ইউজারের প্রোফাইল ডাটা সেট করা
             document.getElementById('userNameText').innerText = user.displayName;
             document.getElementById('userAvatar').src = user.photoURL || "https://www.w3schools.com/howto/img_avatar.png";
             document.getElementById('custName').value = user.displayName;
 
-            // ফায়ারবেস থেকে লাইভ প্রোডাক্ট লোড করা
             listenToLiveProducts();
         })
         .catch((error) => {
@@ -262,13 +264,10 @@
         btn.style.display = (btn.style.display === 'block') ? 'none' : 'block';
     }
 
-    // =========================================================================
-    // 🛒 ৩. ফায়ারবেস থেকে লাইভ প্রোডাক্ট রিড ও ডিসপ্লে করা
-    // =========================================================================
+    // 🛒 ফায়ারবেস থেকে লাইভ প্রোডাক্ট রিড করা
     function listenToLiveProducts() {
         const grid = document.getElementById('darazProductGrid');
         
-        // ফায়ারবেসের 'products' নোড থেকে ডাটা রিয়াল-টাইমে শোনা
         database.ref('products').on('value', (snapshot) => {
             const data = snapshot.val();
             allProducts = [];
@@ -279,7 +278,6 @@
                 return;
             }
 
-            // অবজেক্ট ডাটাকে অ্যারেতে রূপান্তর
             Object.keys(data).forEach(key => {
                 allProducts.push(data[key]);
             });
@@ -352,7 +350,7 @@
             total += item.price;
             const itemRow = document.createElement('div');
             itemRow.classList.add('cart-item');
-            itemRow.innerHTML = `<img src="${item.img}" onerror="this.onerror=null; this.src='${DEFAULT_FALLBACK_IMG}';"><div class="cart-item-info"><h4>${item.name}</h4><span>৳${item.price}</span></div><button class="delete-item" onclick="removeItemFromCart(${index})"><i class="fa-solid fa-trash-can"></i></button>`;
+            itemRow.innerHTML = `<img src="${item.img}" onerror="this.onerror=null; this.src='https://via.placeholder.com/50';"><div class="cart-item-info"><h4>${item.name}</h4><span>৳${item.price}</span></div><button class="delete-item" onclick="removeItemFromCart(${index})"><i class="fa-solid fa-trash-can"></i></button>`;
             listDiv.appendChild(itemRow);
         });
         totalSpan.innerText = total;
@@ -377,25 +375,46 @@
             summaryList.innerHTML += `<div class="summary-item"><span>${item.name}</span><strong>৳${item.price}</strong></div>`;
         });
         document.getElementById('subTotalAmt').innerText = subtotal;
-        document.getElementById('finalBillAmt').innerText = subtotal + 60;
+        
+        // ডিফল্ট ক্যাশ অন ডেলিভারি সিলেক্ট থাকে, তাই শুরুতে চার্জ ৮০ টাকা (৬০ + ২০)
+        document.getElementById('paymentMethod').value = "Cash on Delivery";
+        recalculateDeliveryCharge();
+        
         document.getElementById('checkoutOverlay').style.display = 'flex';
+    }
+
+    // ⚡ পেমেন্ট মেথড চেঞ্জ হলে ডেলিভারি চার্জ অটো ২০ টাকা কমানো/বাড়ানোর লজিক
+    function recalculateDeliveryCharge() {
+        const method = document.getElementById('paymentMethod').value;
+        const subtotal = parseInt(document.getElementById('subTotalAmt').innerText);
+        let deliveryCharge = 60; // সাধারণ ডেলিভারি চার্জ ৬০ টাকা
+
+        if (method === "Cash on Delivery") {
+            deliveryCharge = 80; // ২০ টাকা বেশি চার্জ (৬০ + ২০)
+        }
+
+        document.getElementById('deliveryCostAmt').innerText = deliveryCharge;
+        document.getElementById('finalBillAmt').innerText = subtotal + deliveryCharge;
     }
 
     document.getElementById('productDetailsOverlay').addEventListener('click', function(e) { if(e.target === this) closeDetailsPage(); });
     document.getElementById('checkoutOverlay').addEventListener('click', function(e) { if(e.target === this) closeCheckoutPage(); });
     function closeCheckoutPage() { document.getElementById('checkoutOverlay').style.display = 'none'; }
 
-    // =========================================================================
-    // 📦 ৪. সরাসরি Firebase Realtime Database-এ অর্ডার পাঠানো
-    // =========================================================================
+    // 🚀 সরাসরি Firebase Realtime Database-এ ডাটা পাঠানো
     function confirmFinalOrder() {
         const name = document.getElementById('custName').value;
         const phone = document.getElementById('custPhone').value;
-        const address = document.getElementById('custAddress').value;
+        const district = document.getElementById('custDistrict').value;
+        const upazila = document.getElementById('custUpazila').value;
+        const village = document.getElementById('custVillage').value;
         const method = document.getElementById('paymentMethod').value;
         const totalBill = document.getElementById('finalBillAmt').innerText;
         
-        if(!phone || !address) { alert('অনুগ্রহ করে মোবাইল নাম্বার এবং ডেলিভারি ঠিকানা দিন!'); return; }
+        if(!phone || !district || !upazila || !village) { 
+            alert('অনুগ্রহ করে মোবাইল নাম্বার, জেলা, উপজেলা এবং গ্রামের নাম সঠিকভাবে পূরণ করুন!'); 
+            return; 
+        }
         
         let productNames = checkoutItems.map(item => item.name).join(', ');
         const orderId = Date.now();
@@ -404,14 +423,15 @@
             id: orderId,
             customerName: name,
             customerPhone: phone,
-            customerAddress: address,
+            customerDistrict: district,
+            customerUpazila: upazila,
+            customerVillage: village,
             paymentMethod: method,
             products: productNames,
             totalPrice: totalBill,
             date: new Date().toLocaleString('bn-BD')
         };
 
-        // 🚀 ডাটা সরাসরি Firebase 'orders' নোডে পুশ করা হচ্ছে
         database.ref('orders/' + orderId).set(newOrder)
         .then(() => {
             alert(`🎉 অর্ডার সফল হয়েছে! আপনার সমস্ত তথ্য অ্যাডমিন ডাটাবেজে পাঠানো হয়েছে।`);
