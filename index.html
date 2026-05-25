@@ -8,6 +8,7 @@
     
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database-compat.js"></script>
 
     <style>
         :root { --daraz-orange: #f57224; }
@@ -19,7 +20,6 @@
         .login-box h2 { margin: 0 0 10px 0; color: var(--daraz-orange); font-size: 32px; font-weight: bold; }
         .login-box p { font-size: 14px; color: #666; margin-bottom: 25px; line-height: 1.4; }
         
-        /* কাস্টম গুগল বাটন */
         .google-custom-btn { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; background: white; border: 1px solid #ced4da; padding: 12px; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; color: #424242; }
         .google-custom-btn:hover { background: #f8f9fa; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
         
@@ -193,7 +193,7 @@
 
 <script>
     // =========================================================================
-    // ⚙️ ১. আপনার স্ক্রিনশট থেকে নেওয়া রিয়াল ফায়ারবেস এপিআই আইডি (১০০% ম্যাচড)
+    // ⚙️ ১. আপনার ফায়ারবেস কনফিগারেশন
     // =========================================================================
     const firebaseConfig = {
         apiKey: "AIzaSyCsSA9zpK2hXCNOB7SJCkcqNtFNUgDYXdU",
@@ -208,6 +208,7 @@
     // Firebase ইনিশিয়ালাইজেশন
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const database = firebase.database();
     const provider = new firebase.auth.GoogleAuthProvider();
 
     let shoppingCart = [];
@@ -216,7 +217,7 @@
     const DEFAULT_FALLBACK_IMG = "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=400&q=80";
 
     // =========================================================================
-    // 🔒 ২. গুগল অ্যাকাউন্ট লগইন প্রসেস (পপ-আপ)
+    // 🔒 ২. গুগল অ্যাকাউন্ট লগইন প্রসেস
     // =========================================================================
     function loginWithRealGoogle() {
         provider.setCustomParameters({ prompt: 'select_account' });
@@ -234,11 +235,12 @@
             document.getElementById('userAvatar').src = user.photoURL || "https://www.w3schools.com/howto/img_avatar.png";
             document.getElementById('custName').value = user.displayName;
 
-            loadDarazProducts();
+            // ফায়ারবেস থেকে লাইভ প্রোডাক্ট লোড করা
+            listenToLiveProducts();
         })
         .catch((error) => {
             console.error("Firebase Login Error: ", error);
-            alert("লগইন ব্যর্থ হয়েছে!\n\nসম্ভাব্য কারণ: আপনি এখনো Firebase ড্যাশবোর্ডে Google Sign-in এবং Authorized Domain অন করেননি। অনুগ্রহ করে আগের মেসেজের ২ ও ৩ নম্বর কাজগুলো চেক করুন।");
+            alert("লগইন ব্যর্থ হয়েছে!");
         });
     }
 
@@ -261,19 +263,30 @@
     }
 
     // =========================================================================
-    // 🛒 ৩. প্রোডাক্ট লোড ও কার্ট সিস্টেম
+    // 🛒 ৩. ফায়ারবেস থেকে লাইভ প্রোডাক্ট রিড ও ডিসপ্লে করা
     // =========================================================================
-    function loadDarazProducts() {
+    function listenToLiveProducts() {
         const grid = document.getElementById('darazProductGrid');
-        allProducts = JSON.parse(localStorage.getItem('ryeon_products')) || [];
-        if(allProducts.length === 0) {
-            grid.innerHTML = `<div class="no-product-msg">কোনো কাপড় আপলোড করা নেই! প্রথমে admin.html-এ যান।</div>`;
-            return;
-        }
-        renderProducts(allProducts);
-    }
+        
+        // ফায়ারবেসের 'products' নোড থেকে ডাটা রিয়াল-টাইমে শোনা
+        database.ref('products').on('value', (snapshot) => {
+            const data = snapshot.val();
+            allProducts = [];
+            grid.innerHTML = '';
 
-    document.addEventListener("visibilitychange", function() { if (!document.hidden) { loadDarazProducts(); } });
+            if(!data) {
+                grid.innerHTML = `<div class="no-product-msg">কোনো কাপড় আপলোড করা নেই! প্রথমে admin.html থেকে প্রোডাক্ট অ্যাড করুন।</div>`;
+                return;
+            }
+
+            // অবজেক্ট ডাটাকে অ্যারেতে রূপান্তর
+            Object.keys(data).forEach(key => {
+                allProducts.push(data[key]);
+            });
+
+            renderProducts(allProducts);
+        });
+    }
 
     function renderProducts(productsList) {
         const grid = document.getElementById('darazProductGrid');
@@ -373,7 +386,7 @@
     function closeCheckoutPage() { document.getElementById('checkoutOverlay').style.display = 'none'; }
 
     // =========================================================================
-    // 📦 ৪. অর্ডার প্লেস ও লোকাল স্টোরেজ ডাটা সেন্ড
+    // 📦 ৪. সরাসরি Firebase Realtime Database-এ অর্ডার পাঠানো
     // =========================================================================
     function confirmFinalOrder() {
         const name = document.getElementById('custName').value;
@@ -385,9 +398,10 @@
         if(!phone || !address) { alert('অনুগ্রহ করে মোবাইল নাম্বার এবং ডেলিভারি ঠিকানা দিন!'); return; }
         
         let productNames = checkoutItems.map(item => item.name).join(', ');
+        const orderId = Date.now();
 
         const newOrder = {
-            id: Date.now(),
+            id: orderId,
             customerName: name,
             customerPhone: phone,
             customerAddress: address,
@@ -397,14 +411,18 @@
             date: new Date().toLocaleString('bn-BD')
         };
 
-        let allOrders = JSON.parse(localStorage.getItem('ryeon_orders')) || [];
-        allOrders.push(newOrder);
-        localStorage.setItem('ryeon_orders', JSON.stringify(allOrders));
-
-        alert(`🎉 অর্ডার সফল হয়েছে! আপনার সমস্ত তথ্য এডমিন প্যানেলে পাঠানো হয়েছে।`);
-        shoppingCart = [];
-        updateDarazCartUI();
-        closeCheckoutPage();
+        // 🚀 ডাটা সরাসরি Firebase 'orders' নোডে পুশ করা হচ্ছে
+        database.ref('orders/' + orderId).set(newOrder)
+        .then(() => {
+            alert(`🎉 অর্ডার সফল হয়েছে! আপনার সমস্ত তথ্য অ্যাডমিন ডাটাবেজে পাঠানো হয়েছে।`);
+            shoppingCart = [];
+            updateDarazCartUI();
+            closeCheckoutPage();
+        })
+        .catch((error) => {
+            console.error("Order Submit Error: ", error);
+            alert("অর্ডার সাবমিট করতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।");
+        });
     }
 </script>
 </body>
