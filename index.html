@@ -10,7 +10,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database-compat.js"></script>
 
     <style>
-        :root { --daraz-orange: #f57224; }
+        /* 🔴 অরেঞ্জ কালার পরিবর্তন করে রেড ভেরিয়েবল সেট করা হয়েছে */
+        :root { --daraz-orange: #e74c3c; }
         body { font-family: Roboto, Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; color: #212121; }
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: flex; justify-content: center; align-items: center; }
         .login-box { background: white; padding: 40px; border-radius: 8px; text-align: center; max-width: 360px; width: 100%; box-sizing: border-box; }
@@ -112,7 +113,7 @@
         </div>
         <div class="cart-footer">
             <div class="total-row" style="display:flex; justify-content:space-between; margin:15px 0; font-weight:bold;"><span>Total Amount:</span><span style="color: var(--daraz-orange)">৳<span id="totalBillAmount">0</span></span></div>
-            <button class="checkout-btn" style="background:#f57224; color:white; border:none; width:100%; padding:12px; font-weight:bold; cursor:pointer;" onclick="openCheckoutPage('cart')">PROCEED TO CHECKOUT</button>
+            <button class="checkout-btn" style="background:var(--daraz-orange); color:white; border:none; width:100%; padding:12px; font-weight:bold; cursor:pointer;" onclick="openCheckoutPage('cart')">PROCEED TO CHECKOUT</button>
         </div>
     </div>
 </div>
@@ -297,7 +298,6 @@
     }
 
     function closeDetailsPage() { document.getElementById('productDetailsOverlay').style.display = 'none'; }
-    
     function toggleCart() { document.getElementById('cartSidebar').classList.toggle('open'); }
     
     function addItemToCart(name, price, img) { 
@@ -310,7 +310,6 @@
         document.getElementById('sidebarCount').innerText = shoppingCart.length;
         const list = document.getElementById('sidebarItemsList');
         
-        // ডিলিট মেসেজ ফিক্স
         if(shoppingCart.length > 0) {
             document.getElementById('emptyCartMessage').style.display = 'none';
         } else {
@@ -386,7 +385,6 @@
             date: new Date().toLocaleString('bn-BD')
         };
 
-        // 🚀 ফায়ারবেস রিয়েলটাইম ডাটাবেজে ডাটা পুশ করা হচ্ছে
         database.ref('orders/' + orderId).set(orderData)
         .then(() => {
             alert("🎉 আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে!");
