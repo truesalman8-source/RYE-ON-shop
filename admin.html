@@ -9,7 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database-compat.js"></script>
 
     <style>
-        :root { --admin-blue: #2c3e50; --daraz-orange: #f57224; }
+        :root { --admin-blue: #2c3e50; --daraz-orange: #ff0000; }
         body { font-family: Roboto, Arial, sans-serif; margin: 0; background-color: #f8f9fa; }
         .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; z-index: 9999; display: flex; justify-content: center; align-items: center; }
         .auth-box { background: white; padding: 30px; border-radius: 8px; text-align: center; max-width: 320px; width: 100%; }
@@ -17,8 +17,8 @@
         .auth-box button { background: var(--daraz-orange); color: white; border: none; padding: 10px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 4px; }
         .admin-main-wrapper { display: none; }
         header { background: var(--admin-blue); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .admin-container { max-width: 1300px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 2.5fr; gap: 25px; }
-        .card { background: white; border-radius: 6px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .admin-container { max-width: 1400px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 2.5fr; gap: 25px; }
+        .card { background: white; border-radius: 6px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card h2 { margin-top: 0; font-size: 18px; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #555; }
@@ -29,6 +29,7 @@
         .address-box { background: #f9f9f9; padding: 8px; border-radius: 3px; border-left: 3px solid var(--daraz-orange); line-height: 1.6; font-size: 12px; }
         .action-btn { background: none; border: none; cursor: pointer; font-size: 15px; color: #e74c3c; transition: 0.2s; }
         .action-btn:hover { color: #c0392b; transform: scale(1.1); }
+        .trx-badge { display: inline-block; background: #eef9ff; color: #007bcc; border: 1px solid #bce1f7; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; margin-top: 4px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -49,40 +50,69 @@
     </header>
 
     <div class="admin-container">
-        <div class="card">
-            <h2>নতুন প্রোডাক্ট আপলোড</h2>
-            <div class="form-group"><label>কাপড়ের নাম *</label><input type="text" id="pName"></div>
-            <div class="form-group"><label>দাম (BDT) *</label><input type="number" id="pPrice"></div>
-            <div class="form-group"><label>ইমেজ লিংক *</label><input type="url" id="pImg"></div>
-            <div class="form-group"><label>বিবরণ</label><textarea id="pDesc" style="height:70px; resize: none;"></textarea></div>
-            <button style="background:var(--daraz-orange); color:white; border:none; width:100%; padding:12px; font-weight:bold; cursor:pointer; border-radius:4px; font-size:14px;" onclick="addNewProductToFirebase()">UPLOAD PRODUCT</button>
+        <div>
+            <div class="card">
+                <h2>📱 পেমেন্ট নাম্বার সেটআপ (Live)</h2>
+                <div class="form-group"><label>বিকাশ পার্সোনাল নাম্বার</label><input type="text" id="settingBkash" placeholder="017XXXXXXXX"></div>
+                <div class="form-group"><label>নগদ পার্সোনাল নাম্বার</label><input type="text" id="settingNagad" placeholder="017XXXXXXXX"></div>
+                <button style="background:#2ecc71; color:white; border:none; width:100%; padding:10px; font-weight:bold; cursor:pointer; border-radius:4px; font-size:13px;" onclick="savePaymentGateways()">UPDATE NUMBERS</button>
+            </div>
+
+            <div class="card">
+                <h2>🛍️ নতুন প্রোডাক্ট আপলোড (Add Item)</h2>
+                <div class="form-group"><label>কাপড়ের নাম *</label><input type="text" id="pName"></div>
+                <div class="form-group"><label>দাম (BDT) *</label><input type="number" id="pPrice"></div>
+                <div class="form-group"><label>ইমেজ লিংক *</label><input type="url" id="pImg"></div>
+                <div class="form-group"><label>বিবরণ</label><textarea id="pDesc" style="height:70px; resize: none;"></textarea></div>
+                <button style="background:var(--daraz-orange); color:white; border:none; width:100%; padding:12px; font-weight:bold; cursor:pointer; border-radius:4px; font-size:14px;" onclick="addNewProductToFirebase()">UPLOAD PRODUCT</button>
+            </div>
         </div>
 
-        <div class="card">
-            <h2>কাস্টমারদের অর্ডার লিস্ট (রিয়েল-টাইম)</h2>
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>অর্ডার আইডি</th>
-                            <th>কাস্টমার</th>
-                            <th>৩-স্তরের ঠিকানা (Location)</th>
-                            <th>প্রোডাক্টসমূহ</th>
-                            <th>মোট বিল</th>
-                            <th>অ্যাকশন</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersTableBody">
-                        <tr><td colspan="6" style="text-align:center; color:#999;">অপেক্ষা করুন, ডাটা লোড হচ্ছে...</td></tr>
-                    </tbody>
-                </table>
+        <div>
+            <div class="card">
+                <h2>📋 কাস্টমারদের অর্ডার লিস্ট (রিয়েল-টাইম)</h2>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>অর্ডার আইডি</th>
+                                <th>কাস্টমার</th>
+                                <th>ঠিকানা (Location)</th>
+                                <th>প্রোডাক্টসমূহ</th>
+                                <th>মোট বিল ও TrxID</th>
+                                <th>অ্যাকশন</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <tr><td colspan="6" style="text-align:center; color:#999;">অপেক্ষা করুন, ডাটা লোড হচ্ছে...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>⚙️ আপলোড করা প্রোডাক্টসমূহ (Delete Items Option)</h2>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ছবি</th>
+                                <th>প্রোডাক্টের নাম</th>
+                                <th>মূল্য (BDT)</th>
+                                <th>অ্যাকশন</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminProductsTableBody">
+                            <tr><td colspan="4" style="text-align:center; color:#999;">কোনো প্রোডাক্ট পাওয়া যায়নি।</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // ফায়ারবেস কনফিগারেশন
     const firebaseConfig = {
         apiKey: "AIzaSyCsSA9zpK2hXCNOB7SJCkcqNtFNUgDYXdU",
         authDomain: "rye-on-shop.firebaseapp.com",
@@ -96,20 +126,44 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // অ্যাডমিন পাসওয়ার্ড ভেরিফিকেশন
     function verifyAdminPassword() {
         const pass = document.getElementById('adminPasswordInput').value;
         if(pass === "ryeon1122") {
             document.getElementById('adminAuthOverlay').style.display = 'none';
             document.getElementById('adminMainWrapper').style.display = 'block';
+            loadCurrentGateways();
             listenLiveOrders();
+            listenLiveProducts();
         } else { 
             alert("ভুল পাসওয়ার্ড ভাই! আবার চেষ্টা করুন।"); 
             document.getElementById('adminPasswordInput').value = ""; 
         }
     }
 
-    // নতুন প্রোডাক্ট ফায়ারবেসে পুশ করা
+    // বিকাশ ও নগদ নাম্বার ডাটাবেজ থেকে লোড করা
+    function loadCurrentGateways() {
+        database.ref('paymentGateways').once('value', (snap) => {
+            const data = snap.val();
+            if(data) {
+                document.getElementById('settingBkash').value = data.bkash || "";
+                document.getElementById('settingNagad').value = data.nagad || "";
+            }
+        });
+    }
+
+    // বিকাশ ও নগদ নাম্বার ডাটাবেজে সেভ করা
+    function savePaymentGateways() {
+        const bkashNum = document.getElementById('settingBkash').value.trim();
+        const nagadNum = document.getElementById('settingNagad').value.trim();
+        if(!bkashNum || !nagadNum) { alert("দুটি নাম্বারই ইনপুট দিন ভাই!"); return; }
+
+        database.ref('paymentGateways').set({
+            bkash: bkashNum,
+            nagad: nagadNum
+        }).then(() => { alert("🎉 পেমেন্ট নাম্বার সফলভাবে আপডেট হয়েছে!"); })
+        .catch(err => { alert("সমস্যা হয়েছে: " + err.message); });
+    }
+
     function addNewProductToFirebase() {
         const name = document.getElementById('pName').value.trim();
         const price = document.getElementById('pPrice').value.trim();
@@ -131,18 +185,15 @@
             document.getElementById('pPrice').value = "";
             document.getElementById('pImg').value = "";
             document.getElementById('pDesc').value = "";
-        }).catch((err) => {
-            alert("আপলোড ব্যর্থ: " + err.message);
         });
     }
 
-    // ফায়ারবেস থেকে লাইভ অর্ডার রিড করা
+    // লাইভ অর্ডার শো এবং ট্রানজেকশন আইডি রিড লজিক
     function listenLiveOrders() {
         database.ref('orders').on('value', (snap) => {
             const data = snap.val();
             const tbody = document.getElementById('ordersTableBody');
             const badge = document.getElementById('totalOrdersBadge');
-            
             tbody.innerHTML = '';
             
             if(!data) { 
@@ -151,19 +202,20 @@
                 return; 
             }
             
-            const orderKeys = Object.keys(data).reverse(); // নতুন অর্ডার উপরে দেখানোর জন্য রিভার্স
+            const orderKeys = Object.keys(data).reverse();
             badge.innerText = orderKeys.length + " Orders";
 
             orderKeys.forEach(k => {
                 const o = data[k];
-                
-                // ৩-স্তরের পরিষ্কার ঠিকানার ডিজাইন স্ট্রাকচার
                 const fullAddress = `
                     <div class="address-box">
                         <strong>📍 জেলা:</strong> ${o.customerDistrict || 'N/A'}<br>
                         <strong>🏢 উপজেলা:</strong> ${o.customerUpazila || 'N/A'}<br>
-                        <strong>🏡 গ্রাম/এলাকা:</strong> <span style="color:#d35400; font-weight:bold;">${o.customerVillage || 'N/A'}</span>
+                        <strong>🏡 গ্রাম/এলাকা:</strong> <span style="color:#ff0000; font-weight:bold;">${o.customerVillage || 'N/A'}</span>
                     </div>`;
+
+                // ট্রানজেকশন আইডি ব্যাজ কন্ডিশন
+                const trxDisplay = (o.trxID && o.trxID !== "N/A (COD)") ? `<br><span class="trx-badge"><i class="fa-solid fa-receipt"></i> TxID: ${o.trxID}</span>` : '';
 
                 tbody.innerHTML += `
                     <tr>
@@ -171,19 +223,48 @@
                         <td><strong>${o.customerName}</strong><br><span style="color:#2980b9; font-weight:bold;">${o.customerPhone}</span></td>
                         <td>${fullAddress}</td>
                         <td style="max-width:180px; word-wrap:break-word;">${o.products}</td>
-                        <td><strong style="color:var(--daraz-orange);">৳${o.totalPrice}</strong><br><small style="color:#7f8c8d;">${o.paymentMethod}</small></td>
+                        <td><strong style="color:var(--daraz-orange);">৳${o.totalPrice}</strong><br><small style="color:#7f8c8d;">${o.paymentMethod}</small>${trxDisplay}</td>
                         <td style="text-align:center;"><button class="action-btn" onclick="deleteOrder('${o.id}')" title="অর্ডার ডিলিট করুন"><i class="fa-solid fa-trash-can"></i></button></td>
                     </tr>`;
             });
         });
     }
 
-    // অর্ডার ডিলিট করার ফাংশন
+    // লাইভ প্রোডাক্ট লিস্ট লোড ও ডিলিট অপশন
+    function listenLiveProducts() {
+        database.ref('products').on('value', (snap) => {
+            const data = snap.val();
+            const pTbody = document.getElementById('adminProductsTableBody');
+            pTbody.innerHTML = '';
+
+            if(!data) {
+                pTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#999; padding:15px;">ডাটাবেজে কোনো প্রোডাক্ট পাওয়া যায়নি ভাই!</td></tr>';
+                return;
+            }
+
+            Object.keys(data).forEach(k => {
+                const p = data[k];
+                pTbody.innerHTML += `
+                    <tr>
+                        <td><img src="${p.img}" style="width:40px; height:40px; object-fit:cover; border-radius:4px;"></td>
+                        <td><strong>${p.name}</strong></td>
+                        <td>৳${p.price}</td>
+                        <td><button class="action-btn" onclick="deleteProductFromFirebase('${p.id}')" title="প্রোডাক্টটি ডিলিট করুন"><i class="fa-solid fa-trash-can"></i></button></td>
+                    </tr>`;
+            });
+        });
+    }
+
     function deleteOrder(id) { 
         if(confirm("ভাই, আপনি কি নিশ্চিত যে এই অর্ডারটি ডাটাবেজ থেকে চিরতরে মুছে ফেলতে চান?")) {
-            database.ref('orders/' + id).remove()
-            .then(() => { alert("অর্ডারটি সফলভাবে ডিলিট করা হয়েছে।"); })
-            .catch((err) => { alert("ডিলিট করতে সমস্যা হয়েছে: " + err.message); });
+            database.ref('orders/' + id).remove().then(() => { alert("অর্ডারটি সফলভাবে ডিলিট করা হয়েছে।"); });
+        }
+    }
+
+    // প্রোডাক্ট ডিলিট ফাংশন
+    function deleteProductFromFirebase(id) {
+        if(confirm("ভাই, আপনি কি নিশ্চিত যে এই আইটেমটি আপনার দোকান (Shop) থেকে চিরতরে ডিলিট করতে চান?")) {
+            database.ref('products/' + id).remove().then(() => { alert("🛍️ প্রোডাক্টটি সফলভাবে দোকান থেকে ডিলিট করা হয়েছে।"); });
         }
     }
 </script>
