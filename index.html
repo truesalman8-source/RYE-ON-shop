@@ -10,7 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database-compat.js"></script>
 
     <style>
-        /* 🔴 থিম কালার পরিবর্তন করে একদম কড়া লাল (#ff0000) সেট করা হয়েছে */
         :root { --daraz-orange: #ff0000; }
         body { font-family: Roboto, Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; color: #212121; }
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: flex; justify-content: center; align-items: center; }
@@ -30,7 +29,13 @@
         .logout-btn { font-size: 11px; background: #eee; border: 1px solid #ccc; padding: 2px 6px; border-radius: 3px; display: none; position: absolute; top: 35px; left: 0; z-index: 10; }
         .cart-icon-box { font-size: 24px; color: #424242; position: relative; cursor: pointer; }
         .cart-badge { position: absolute; top: -8px; right: -12px; background: var(--daraz-orange); color: white; font-size: 11px; padding: 2px 6px; border-radius: 10px; }
-        .container { max-width: 1200px; margin: 25px auto; padding: 0 20px; }
+        
+        /* 🎨 আরওয়াইই অন স্মার্ট ব্যানার ব্যাকগ্রাউন্ড */
+        .hero-banner { background: linear-gradient(135deg, #111111 0%, #ff0000 100%); color: white; text-align: center; padding: 50px 20px; margin-bottom: 25px; border-bottom: 4px solid #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+        .hero-banner h1 { margin: 0; font-size: 42px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; text-shadow: 2px 2px 4px rgba(0,0,0,0.6); }
+        .hero-banner p { margin: 8px 0 0 0; font-size: 16px; font-style: italic; opacity: 0.9; letter-spacing: 1px; }
+
+        .container { max-width: 1200px; margin: 0 auto 25px auto; padding: 0 20px; }
         .section-title { font-size: 22px; font-weight: bold; color: #424242; margin-bottom: 15px; border-left: 4px solid var(--daraz-orange); padding-left: 10px; }
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); gap: 12px; }
         .product-card { background: white; display: flex; flex-direction: column; border-radius: 2px; border: 1px solid #ddd; cursor: pointer; transition: 0.2s; }
@@ -42,6 +47,7 @@
         .card-action-btns button { border: none; padding: 8px 4px; font-size: 12px; font-weight: bold; border-radius: 3px; cursor: pointer; flex: 1; }
         .add-to-cart-btn { background: #fff1eb; color: var(--daraz-orange); border: 1px solid var(--daraz-orange) !important; }
         .buy-now-btn { background: var(--daraz-orange); color: white; }
+        
         .cart-sidebar { position: fixed; top: 0; right: -380px; width: 340px; height: 100%; background: white; box-shadow: -4px 0 15px rgba(0,0,0,0.15); z-index: 1000; transition: 0.3s; padding: 20px; display: flex; flex-direction: column; }
         .cart-sidebar.open { right: 0; }
         .cart-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eff0f5; padding-bottom: 15px; }
@@ -49,14 +55,18 @@
         .cart-items { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
         .cart-item { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid #eff0f5; }
         .cart-item img { width: 50px; height: 50px; object-fit: cover; }
+        
         .checkout-overlay, .details-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1500; display: none; justify-content: center; align-items: center; }
-        .checkout-page { background: white; width: 100%; max-width: 650px; border-radius: 4px; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; position: relative; }
+        .checkout-page { background: white; width: 100%; max-width: 680px; border-radius: 4px; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; position: relative; }
         .checkout-close { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #9e9e9e; z-index: 10; }
-        .checkout-left { padding: 25px; border-right: 1px solid #eff0f5; max-height: 480px; overflow-y: auto; }
+        .checkout-left { padding: 25px; border-right: 1px solid #eff0f5; max-height: 520px; overflow-y: auto; }
         .checkout-right { padding: 25px; background: #fafafa; display: flex; flex-direction: column; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 12px; margin-bottom: 4px; color: #757575; font-weight: bold; }
         .form-group input, .form-group select { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 3px; box-sizing: border-box; font-size: 14px; }
+        
+        /* 📱 পেমেন্ট ইনস্ট্রাকশন বক্স */
+        .payment-instruction-box { background: #fff0f0; border: 1px dashed var(--daraz-orange); padding: 10px; border-radius: 4px; font-size: 12px; margin-top: 8px; color: #333; display: none; }
         .place-order-btn { background: var(--daraz-orange); color: white; border: none; padding: 12px; font-size: 15px; font-weight: bold; width: 100%; margin-top: auto; cursor: pointer; }
         
         .details-page { background: white; width: 100%; max-width: 700px; border-radius: 6px; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; padding: 20px; gap: 20px; box-sizing: border-box; }
@@ -97,6 +107,11 @@
             </div>
         </div>
     </header>
+
+    <div class="hero-banner">
+        <h1>RYE ON</h1>
+        <p>Way to Smart</p>
+    </div>
 
     <div class="container">
         <div class="section-title">Just For You</div>
@@ -161,11 +176,19 @@
             </div>
             
             <div class="form-group"><label>পেমেন্ট মেথড *</label>
-                <select id="paymentMethod" onchange="recalculateDeliveryCharge()">
+                <select id="paymentMethod" onchange="handlePaymentMethodChange()">
                     <option value="Cash on Delivery">Cash on Delivery (COD)</option>
                     <option value="bKash">bKash (বিকাশ)</option>
                     <option value="Nagad">Nagad (নগদ)</option>
                 </select>
+            </div>
+
+            <div class="payment-instruction-box" id="paymentInstructionBox">
+                <span id="paymentInstructionText"></span>
+                <div class="form-group" style="margin-top:10px; margin-bottom:0;">
+                    <label style="color:#ff0000;">TrxID / ট্রানজেকশন আইডি দিন *</label>
+                    <input type="text" id="paymentTrxID" placeholder="যেমন: BAx78JK90L">
+                </div>
             </div>
         </div>
         <div class="checkout-right">
@@ -200,6 +223,7 @@
     let shoppingCart = [];
     let allProducts = [];
     let checkoutItems = [];
+    let adminGateways = { bkash: "017XXXXXXXX", nagad: "017XXXXXXXX" };
 
     const madaripurData = {
         "Kalkini": { name: "কালকিনি (Kalkini)", villages: ["কালকিনি পৌরসভা", "গোপালপুর", "কাজীবাকাই", "বালিগ্রাম", "ডাসার", "নবগ্রাম", "আলীনগর", "এনায়েতনগর", "রমজানপুর", "শিকারমঙ্গল", "সাহেবরামপুর", "চরদৌলতখান", "ক্রীড়াধরপুর", "লক্ষ্মীপুর", "বাঁশগাড়ী"] },
@@ -207,6 +231,11 @@
         "Shibchar": { name: "শিবচর (Shibchar)", villages: ["শিবচর পৌরসভা", "উত্তরাঞ্চল", "দত্তপাড়া", "কুতুবপুর", "কাদিরপুর", "দ্বিতীয়খন্ড", "ভান্ডারীকান্দি", "বহেরাভেড়াতলা", "সন্যাসীরচর", "শিরুয়াইল", "নিলখী", "বাঁশকান্দি", "চরজানাজাত", "মাদবরেরচর"] },
         "Rajoir": { name: "রাজৈর (Rajoir)", villages: ["রাজৈর পৌরসভা", "টেকেরহাট", "খালিয়া", "আমগ্রাম", "কদমবাড়ী", "বজলু", "পাইকপাড়া", "ইশিবপুর", "বাজিতপুর", "হোসেনপুর", "কবিরাজপুর", "সাতপাড়"] }
     };
+
+    // ফায়ারবেস থেকে অ্যাডমিন প্যানেলে সেট করা মোবাইল নাম্বার সিঙ্ক করা
+    database.ref('paymentGateways').on('value', (snap) => {
+        if(snap.val()) { adminGateways = snap.val(); }
+    });
 
     function handleDistrictChange() {
         const dist = document.getElementById('custDistrict').value;
@@ -340,22 +369,42 @@
         let sub = 0;
         checkoutItems.forEach(i => { sub += i.price; list.innerHTML += `<div>• ${i.name} (৳${i.price})</div>`; });
         document.getElementById('subTotalAmt').innerText = sub;
-        recalculateDeliveryCharge();
+        
+        document.getElementById('paymentMethod').value = "Cash on Delivery";
+        handlePaymentMethodChange();
         handleDistrictChange();
         document.getElementById('checkoutOverlay').style.display = 'flex';
     }
 
     function closeCheckoutPage() { document.getElementById('checkoutOverlay').style.display = 'none'; }
     
-    function recalculateDeliveryCharge() {
-        let del = document.getElementById('paymentMethod').value === "Cash on Delivery" ? 80 : 60;
+    // 🔀 পেমেন্ট মেথড চেঞ্জ লজিক এবং ট্রানজেকশন আইডি শো করা
+    function handlePaymentMethodChange() {
+        const method = document.getElementById('paymentMethod').value;
+        const infoBox = document.getElementById('paymentInstructionBox');
+        const text = document.getElementById('paymentInstructionText');
+        
+        let del = (method === "Cash on Delivery") ? 80 : 60;
         document.getElementById('deliveryCostAmt').innerText = del;
         document.getElementById('finalBillAmt').innerText = parseInt(document.getElementById('subTotalAmt').innerText) + del;
+
+        if (method === "bKash") {
+            infoBox.style.display = "block";
+            text.innerHTML = `📣 আমাদের বিকাশ পার্সোনাল নাম্বার <strong>${adminGateways.bkash}</strong> এ ৳${document.getElementById('finalBillAmt').innerText} Send Money করে নিচে ট্রানজেকশন আইডি (TrxID) দিন।`;
+        } else if (method === "Nagad") {
+            infoBox.style.display = "block";
+            text.innerHTML = `📣 আমাদের নগদ পার্সোনাল নাম্বার <strong>${adminGateways.nagad}</strong> এ ৳${document.getElementById('finalBillAmt').innerText} Send Money করে নিচে ট্রানজেকশন আইডি (TrxID) দিন।`;
+        } else {
+            infoBox.style.display = "none";
+            document.getElementById('paymentTrxID').value = "";
+        }
     }
 
     function confirmFinalOrder() {
         const name = document.getElementById('custName').value.trim();
         const phone = document.getElementById('custPhone').value.trim();
+        const method = document.getElementById('paymentMethod').value;
+        const trxId = document.getElementById('paymentTrxID').value.trim();
         
         let dist = document.getElementById('custDistrict').value === "Other" ? document.getElementById('custDistrictManual').value.trim() : "মাদারীপুর";
         let up = document.getElementById('custDistrict').value === "Other" ? document.getElementById('custUpazilaManual').value.trim() : madaripurData[document.getElementById('custUpazila').value].name;
@@ -368,6 +417,7 @@
         }
 
         if(!name || !phone || !vil) { alert("অনুগ্রহ করে সব তথ্য সঠিকভাবে দিন!"); return; }
+        if((method === "bKash" || method === "Nagad") && !trxId) { alert("অনুগ্রহ করে টাকা পাঠিয়ে ট্রানজেকশন আইডি (TrxID) দিন!"); return; }
 
         const orderId = Date.now();
         const productString = checkoutItems.map(i => i.name).join(', ');
@@ -381,7 +431,8 @@
             customerVillage: vil, 
             products: productString,
             totalPrice: document.getElementById('finalBillAmt').innerText,
-            paymentMethod: document.getElementById('paymentMethod').value,
+            paymentMethod: method,
+            trxID: trxId || "N/A (COD)",
             date: new Date().toLocaleString('bn-BD')
         };
 
