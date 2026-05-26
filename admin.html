@@ -104,7 +104,7 @@
 </div>
 
 <script>
-    // ⚙️ আপনার ফায়ারবেস কনফিগারেশন (ইউজার পেজের সাথে মিল রেখে)
+    // ⚙️ আপনার ফায়ারবেস কনফিগারেশন
     const firebaseConfig = {
         apiKey: "AIzaSyCsSA9zpK2hXCNOB7SJCkcqNtFNUgDYXdU",
         authDomain: "rye-on-shop.firebaseapp.com",
@@ -131,7 +131,7 @@
             return;
         }
 
-        const productId = Date.now(); // ইউনিক আইডি জেনারেট করা
+        const productId = Date.now();
         const productData = {
             id: productId,
             name: name,
@@ -143,7 +143,6 @@
         database.ref('products/' + productId).set(productData)
         .then(() => {
             alert("🎉 প্রোডাক্টটি সফলভাবে ওয়েবসাইট গ্যালারিতে আপলোড হয়েছে!");
-            // ফর্ম ক্লিয়ার করা
             document.getElementById('pName').value = "";
             document.getElementById('pPrice').value = "";
             document.getElementById('pImg').value = "";
@@ -169,18 +168,24 @@
                 return;
             }
 
-            const orderKeys = Object.keys(data).reverse(); // লেটেস্ট অর্ডার সবার উপরে দেখাবে
+            const orderKeys = Object.keys(data).reverse(); // লেটেস্ট অর্ডার উপরে থাকবে
             badge.innerText = orderKeys.length + " Orders";
 
             orderKeys.forEach(key => {
                 const order = data[key];
                 
-                // ঠিকানা ফরম্যাটিং (ড্রপডাউন এবং কাস্টম ডাটা হ্যান্ডলিং)
+                // 🛠️ কাস্টম লোকেশন ফিল্টারিং টেক্সট লজিক
+                let villageDisplay = order.customerVillage;
+                if(villageDisplay === "CustomLocation") {
+                    villageDisplay = "অন্যান্য (কাস্টম লোকেশন)";
+                }
+
+                // ঠিকানা ফরম্যাটিং
                 const fullAddress = `
                     <div class="address-box">
                         <strong>জেলা:</strong> ${order.customerDistrict || 'N/A'}<br>
                         <strong>উপজেলা:</strong> ${order.customerUpazila || 'N/A'}<br>
-                        <strong>গ্রাম/এলাকা:</strong> ${order.customerVillage || 'N/A'}
+                        <strong>গ্রাম/এলাকা:</strong> ${villageDisplay || 'N/A'}
                     </div>
                 `;
 
@@ -211,7 +216,7 @@
         });
     }
 
-    // ❌ ৩. কমপ্লিট বা ফেক অর্ডার প্যানেল থেকে ডিলিট করার লজিক
+    // ❌ ৩. অর্ডার ডিলিট করার লজিক
     function deleteOrderFromPanel(orderId) {
         if(confirm("আপনি কি নিশ্চিত যে এই অর্ডারটি ডাটাবেজ থেকে চিরতরে মুছে ফেলতে চান?")) {
             database.ref('orders/' + orderId).remove()
@@ -224,7 +229,6 @@
         }
     }
 
-    // পেজ লোড হলেই লাইভ লিসেনার অন হবে
     window.onload = listenLiveOrders;
 </script>
 </body>
