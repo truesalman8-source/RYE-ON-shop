@@ -189,9 +189,9 @@
 
             <div class="form-group">
                 <label>গ্রাম / ইউনিয়ন / এলাকা *</label>
-                <select id="custVillage">
+                <select id="custVillage" onchange="handleVillageDropdownChange()">
                     </select>
-                <input type="text" id="custVillageManual" placeholder="গ্রাম / রোড / হাউজ নং লিখুন" style="display:none; margin-top:5px;">
+                <input type="text" id="custVillageManual" placeholder="আপনার গ্রাম / রোড / এলাকাটির নাম হাতে লিখুন" style="display:none; margin-top:5px;">
             </div>
             
             <div class="form-group"><label>পেমেন্ট মেথড *</label>
@@ -306,17 +306,22 @@
             madaripurData[upazilaKey].villages.forEach(village => {
                 villageSelect.innerHTML += `<option value="${village}">${village}</option>`;
             });
-            villageSelect.innerHTML += `<option value="Other">অন্যান্য (হাতে লিখুন)</option>`;
+            // ✨ ৪ নম্বর অপশন: কাস্টম লোকেশন নেম সিলেক্টর
+            villageSelect.innerHTML += `<option value="CustomLocation">অন্যান্য (হাতে লিখুন)</option>`;
             villageSelect.style.display = "block";
             manualVillageInput.style.display = "none";
-            
-            villageSelect.onchange = function() {
-                if(this.value === "Other") {
-                    manualVillageInput.style.display = "block";
-                } else {
-                    manualVillageInput.style.display = "none";
-                }
-            };
+        }
+    }
+
+    // 🔄 গ্রাম ড্রপডাউনে "অন্যান্য (হাতে লিখুন)" সিলেক্ট করলে কাস্টম বক্স ওপেন করার লজিক
+    function handleVillageDropdownChange() {
+        const villageValue = document.getElementById('custVillage').value;
+        const manualVillageInput = document.getElementById('custVillageManual');
+        
+        if (villageValue === "CustomLocation") {
+            manualVillageInput.style.display = "block";
+        } else {
+            manualVillageInput.style.display = "none";
         }
     }
 
@@ -449,7 +454,6 @@
         document.getElementById('paymentMethod').value = "Cash on Delivery";
         recalculateDeliveryCharge();
         
-        // ডিফল্ট জোন মাদারীপুর লোড হবে
         document.getElementById('custDistrict').value = "Madaripur";
         handleDistrictChange();
 
@@ -489,7 +493,8 @@
         }
 
         let village = "";
-        if(document.getElementById('custDistrict').value === "Other" || document.getElementById('custVillage').value === "Other") {
+        // যদি ড্রপডাউনে অন্যান্য জেলা অথবা মাদারীপুরের ভেতরে কাস্টম লোকেশন সিলেক্ট করা হয়
+        if(document.getElementById('custDistrict').value === "Other" || document.getElementById('custVillage').value === "CustomLocation") {
             village = document.getElementById('custVillageManual').value;
         } else {
             village = document.getElementById('custVillage').value;
