@@ -13,6 +13,19 @@
         :root { --admin-blue: #2c3e50; --accent-color: #1abc9c; }
         body { font-family: Roboto, Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f6fa; color: #333; }
         
+        /* 🔒 ডাবল সিকিউরিটি লগইন স্ক্রিন স্টাইল */
+        .admin-lock-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a252f; z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        .lock-box { background: white; padding: 40px; border-radius: 8px; text-align: center; max-width: 360px; width: 100%; box-sizing: border-box; box-shadow: 0 4px 25px rgba(0,0,0,0.3); }
+        .lock-box i { font-size: 50px; color: #e74c3c; margin-bottom: 15px; }
+        .lock-box h2 { margin: 0 0 10px 0; color: var(--admin-blue); }
+        .lock-box p { font-size: 14px; color: #666; margin-bottom: 20px; }
+        .lock-box input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 15px; text-align: center; margin-bottom: 12px; outline: none; }
+        .lock-box input:focus { border-color: var(--admin-blue); }
+        .lock-box button { background: var(--admin-blue); color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 5px; }
+        
+        /* 📊 মেইন ড্যাশবোর্ড (লগইন ছাড়া লুকিয়ে থাকবে) */
+        .admin-main-wrapper { display: none; }
+
         header { background: var(--admin-blue); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
         header h1 { margin: 0; font-size: 24px; }
         .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
@@ -38,71 +51,86 @@
 </head>
 <body>
 
-<header>
-    <h1>RYE ON — অ্যাডমিন ড্যাশবোর্ড (Firebase Live)</h1>
-    <div><i class="fa-solid fa-user-shield"></i> Admin: Salman</div>
-</header>
-
-<div class="container">
-    <div class="card">
-        <h3><i class="fa-solid fa-plus"></i> নতুন প্রোডাক্ট যোগ করুন</h3>
-        <div class="form-group">
-            <label>প্রোডাক্টের নাম *</label>
-            <input type="text" id="pName" placeholder="যেমন: Premium T-Shirt">
-        </div>
-        <div class="form-group">
-            <label>দাম (৳) *</label>
-            <input type="number" id="pPrice" placeholder="যেমন: 500">
-        </div>
-        <div class="form-group">
-            <label>ছবির লিঙ্ক (Image URL) *</label>
-            <input type="text" id="pImg" placeholder="https://example.com/image.jpg">
-        </div>
-        <div class="form-group">
-            <label>প্রোডাক্টের বিবরণ (Description)</label>
-            <textarea id="pDesc" rows="4" placeholder="কাপড়ের সাইজ বা ডিটেইলস লিখুন..."></textarea>
-        </div>
-        <button class="btn" onclick="uploadProduct()"><i class="fa-solid fa-cloud-arrow-up"></i> ফায়ারবেসে আপলোড করুন</button>
+<div class="admin-lock-overlay" id="adminLockOverlay">
+    <div class="lock-box">
+        <i class="fa-solid fa-user-lock"></i>
+        <h2>Admin Portal</h2>
+        <p>লগইন করতে সঠিক ইউজারনেম এবং পাসওয়ার্ড দিন</p>
+        
+        <input type="text" id="adminUserInput" placeholder="Username">
+        <input type="password" id="adminPassInput" placeholder="Password" onkeypress="handleKeyPress(event)">
+        
+        <button onclick="checkAdminCredentials()">Login to Panel</button>
     </div>
+</div>
 
-    <div class="right-column">
+<div class="admin-main-wrapper" id="adminMainWrapper">
+    <header>
+        <h1>RYE ON — অ্যাডমিন ড্যাশবোর্ড (Firebase Live)</h1>
+        <div><i class="fa-solid fa-user-shield"></i> Admin: Salman</div>
+    </header>
+
+    <div class="container">
         <div class="card">
-            <h3><i class="fa-solid fa-basket-shopping"></i> কাস্টমারদের লাইভ অর্ডার লিস্ট (<span id="orderCount">0</span>)</h3>
-            <div style="overflow-x:auto;">
-                <table class="order-table">
-                    <thead>
-                        <tr>
-                            <th>তারিখ</th>
-                            <th>কাস্টমার ডিটেইলস</th>
-                            <th>ডেলিভারি ঠিকানা (৩ অপশন)</th>
-                            <th>প্রোডাক্টসমূহ</th>
-                            <th>মোট বিল</th>
-                            <th>অ্যাকশন</th>
-                        </tr>
-                    </thead>
-                    <tbody id="adminOrderTableBody">
-                        <tr><td colspan="6" style="text-align:center; color:#999;">অর্ডার লোড হচ্ছে...</td></tr>
-                    </tbody>
-                </table>
+            <h3><i class="fa-solid fa-plus"></i> নতুন প্রোডাক্ট যোগ করুন</h3>
+            <div class="form-group">
+                <label>প্রোডাক্টের নাম *</label>
+                <input type="text" id="pName" placeholder="যেমন: Premium T-Shirt">
             </div>
+            <div class="form-group">
+                <label>দাম (৳) *</label>
+                <input type="number" id="pPrice" placeholder="যেমন: 500">
+            </div>
+            <div class="form-group">
+                <label>ছবির লিঙ্ক (Image URL) *</label>
+                <input type="text" id="pImg" placeholder="https://example.com/image.jpg">
+            </div>
+            <div class="form-group">
+                <label>প্রোডাক্টের বিবরণ (Description)</label>
+                <textarea id="pDesc" rows="4" placeholder="কাপড়ের সাইজ বা ডিটেইলস লিখুন..."></textarea>
+            </div>
+            <button class="btn" onclick="uploadProduct()"><i class="fa-solid fa-cloud-arrow-up"></i> ফায়ারবেসে আপলোড করুন</button>
         </div>
 
-        <div class="card">
-            <h3><i class="fa-solid fa-list"></i> বর্তমান প্রোডাক্টসমূহ</h3>
-            <div style="overflow-x:auto;">
-                <table class="product-list-table">
-                    <thead>
-                        <tr>
-                            <th>ছবি</th>
-                            <th>নাম</th>
-                            <th>দাম</th>
-                            <th>অ্যাকশন</th>
-                        </tr>
-                    </thead>
-                    <tbody id="adminProductTableBody">
-                        <tr><td colspan="4" style="text-align:center; color:#999;">প্রোডাক্ট লোড হচ্ছে...</td></tr>
-                    </tbody>
-                </table>
+        <div class="right-column">
+            <div class="card">
+                <h3><i class="fa-solid fa-basket-shopping"></i> কাস্টমারদের লাইভ অর্ডার লিস্ট (<span id="orderCount">0</span>)</h3>
+                <div style="overflow-x:auto;">
+                    <table class="order-table">
+                        <thead>
+                            <tr>
+                                <th>তারিখ</th>
+                                <th>কাস্টমার ডিটেইলস</th>
+                                <th>ডেলিভারি ঠিকানা (৩ অপশন)</th>
+                                <th>প্রোডাক্টসমূহ</th>
+                                <th>মোট বিল</th>
+                                <th>অ্যাকশন</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminOrderTableBody">
+                            <tr><td colspan="6" style="text-align:center; color:#999;">অर्डर লোড হচ্ছে...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fa-solid fa-list"></i> বর্তমান প্রোডাক্টসমূহ</h3>
+                <div style="overflow-x:auto;">
+                    <table class="product-list-table">
+                        <thead>
+                            <tr>
+                                <th>ছবি</th>
+                                <th>নাম</th>
+                                <th>দাম</th>
+                                <th>অ্যাকশন</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminProductTableBody">
+                            <tr><td colspan="4" style="text-align:center; color:#999;">প্রোডাক্ট লোড হচ্ছে...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -124,11 +152,35 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // পেজ লোড হলে ফায়ারবেস থেকে ডাটা সোজা ড্যাশবোর্ডে চলে আসবে
-    window.onload = function() {
-        listenToProducts();
-        listenToOrders();
-    };
+    // 🔑 ইউজারনেম এবং পাসওয়ার্ড ভেরিফিকেশন লজিক
+    function checkAdminCredentials() {
+        const usernameInput = document.getElementById('adminUserInput').value.trim();
+        const passwordInput = document.getElementById('adminPassInput').value;
+        
+        // 🔐 আপনার কাস্টম লগইন ডিটেইলস
+        const correctUsername = "ryeon";
+        const correctPassword = "ryeon1122";
+
+        if (usernameInput === correctUsername && passwordInput === correctPassword) {
+            // সঠিক হলে গেটওয়ে লক সরাবে ও ড্যাশবোর্ড আনলক করবে
+            document.getElementById('adminLockOverlay').style.display = 'none';
+            document.getElementById('adminMainWrapper').style.display = 'block';
+            
+            // রিয়াল-টাইম ডাটাবেজ কানেক্ট করা
+            listenToProducts();
+            listenToOrders();
+        } else {
+            alert("❌ ভুল ইউজারনেম অথবা পাসওয়ার্ড! আবার চেষ্টা করুন।");
+            document.getElementById('adminPassInput').value = '';
+        }
+    }
+
+    // পাসওয়ার্ড ফিল্ডে এসে Enter চাপলে অটো লগইন হবে
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') {
+            checkAdminCredentials();
+        }
+    }
 
     // 👕 ১. ফায়ারবেস ডাটাবেজে প্রোডাক্ট আপলোড করার ফাংশন
     function uploadProduct() {
@@ -143,15 +195,8 @@
         }
 
         const productId = Date.now();
-        const newProduct = {
-            id: productId,
-            name: name,
-            price: price,
-            img: img,
-            desc: desc
-        };
+        const newProduct = { id: productId, name: name, price: price, img: img, desc: desc };
 
-        // Firebase-এ ডাটা পুশ করা
         database.ref('products/' + productId).set(newProduct)
         .then(() => {
             alert("🎉 প্রোডাক্টটি সফলভাবে ফায়ারবেসে সেভ হয়েছে!");
@@ -160,10 +205,7 @@
             document.getElementById('pImg').value = '';
             document.getElementById('pDesc').value = '';
         })
-        .catch(error => {
-            console.error(error);
-            alert("ডাটাবেজে আপলোড করতে সমস্যা হয়েছে।");
-        });
+        .catch(error => { alert("ডাটাবেজে আপলোড করতে সমস্যা হয়েছে।"); });
     }
 
     // 📋 ২. ফায়ারবেস থেকে রিয়াল-টাইমে প্রোডাক্টের লিস্ট নিয়ে আসা
@@ -171,13 +213,11 @@
         database.ref('products').on('value', (snapshot) => {
             const tbody = document.getElementById('adminProductTableBody');
             tbody.innerHTML = '';
-            
             const data = snapshot.val();
             if(!data) {
                 tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#999;">কোনো প্রোডাক্ট আপলোড করা নেই।</td></tr>';
                 return;
             }
-
             Object.keys(data).forEach(key => {
                 const product = data[key];
                 tbody.innerHTML += `
@@ -199,7 +239,7 @@
         }
     }
 
-    // 📦 ৪. কাস্টমারদের লাইভ অর্ডার ট্র্যাক করা (৩টি লোকেশন অপশন সহ)
+    // 📦 ৪. কাস্টমারদের লাইভ অর্ডার ট্র্যাক করা
     function listenToOrders() {
         database.ref('orders').on('value', (snapshot) => {
             const tbody = document.getElementById('adminOrderTableBody');
@@ -217,8 +257,6 @@
 
             keys.forEach(key => {
                 const order = data[key];
-
-                // ৩টি আলাদা লোকেশন ডাটা রিড করা (পুরনো কোনো অর্ডার থাকলে সেটার জন্য সেফটি ফলব্যাক দেওয়া আছে)
                 const dist = order.customerDistrict || "N/A";
                 const upaz = order.customerUpazila || "N/A";
                 const vill = order.customerVillage || order.customerAddress || "N/A";
@@ -226,15 +264,8 @@
                 tbody.innerHTML += `
                     <tr>
                         <td>${order.date || 'N/A'}</td>
-                        <td>
-                            <strong>${order.customerName}</strong><br>
-                            📞 ${order.customerPhone}
-                        </td>
-                        <td>
-                            🏙️ <strong>জেলা:</strong> ${dist}<br>
-                            🏡 <strong>উপজেলা:</strong> ${upaz}<br>
-                            📍 <strong>গ্রাম/এলাকা:</strong> ${vill}
-                        </td>
+                        <td><strong>${order.customerName}</strong><br>📞 ${order.customerPhone}</td>
+                        <td>🏙️ <strong>জেলা:</strong> ${dist}<br>🏡 <strong>উপজেলা:</strong> ${upaz}<br>📍 <strong>গ্রাম/এলাকা:</strong> ${vill}</td>
                         <td>${order.products} <br><span class="badge">${order.paymentMethod}</span></td>
                         <td style="color:#f57224; font-weight:bold;">৳${order.totalPrice}</td>
                         <td><button class="delete-btn" onclick="deleteOrder('${key}')">ডিলিট</button></td>
