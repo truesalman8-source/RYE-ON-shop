@@ -13,6 +13,18 @@
         :root { --admin-blue: #2c3e50; --accent-color: #34495e; --daraz-orange: #f57224; }
         body { font-family: Roboto, Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; color: #333; }
         
+        /* 🔒 পাসওয়ার্ড প্রোটেকশন ওভারলে স্ক্রিন */
+        .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        .auth-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); text-align: center; max-width: 320px; width: 100%; box-sizing: border-box; }
+        .auth-box h2 { color: var(--daraz-orange); margin: 0 0 10px 0; font-size: 24px; }
+        .auth-box p { font-size: 13px; color: #666; margin-bottom: 20px; }
+        .auth-box input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; text-align: center; margin-bottom: 15px; outline: none; }
+        .auth-box button { background: var(--daraz-orange); color: white; border: none; padding: 10px; font-size: 15px; font-weight: bold; width: 100%; border-radius: 4px; cursor: pointer; }
+        .auth-box button:hover { background: #e05e14; }
+
+        /* প্রধান কন্টেন্ট (শুরুতে হাইড থাকবে) */
+        .admin-main-wrapper { display: none; }
+        
         header { background: var(--admin-blue); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         header h1 { margin: 0; font-size: 24px; font-weight: bold; }
         .badge { background: var(--daraz-orange); color: white; padding: 3px 8px; border-radius: 10px; font-size: 12px; }
@@ -50,57 +62,66 @@
 </head>
 <body>
 
-<header>
-    <h1>RYE ON - Admin Panel</h1>
-    <div><span class="badge" id="totalOrdersBadge">0 Orders</span></div>
-</header>
-
-<div class="admin-container">
-    
-    <div class="card">
-        <h2><i class="fa-solid fa-plus-circle"></i> নতুন প্রোডাক্ট অ্যাড করুন</h2>
-        <div class="form-group">
-            <label>কাপড়ের নাম (Product Title) *</label>
-            <input type="text" id="pName" placeholder="যেমন: Premium Casual Shirt">
-        </div>
-        <div class="form-group">
-            <label>দাম (Price BDT) *</label>
-            <input type="number" id="pPrice" placeholder="যেমন: 450">
-        </div>
-        <div class="form-group">
-            <label>ইমেজ লিংক (Image URL) *</label>
-            <input type="url" id="pImg" placeholder="https://images.unsplash.com/...">
-        </div>
-        <div class="form-group">
-            <label>বিবরণ / ডেসক্রিপশন (Short Description)</label>
-            <textarea id="pDesc" placeholder="কাপড়ের সাইজ, ফেব্রিক্স ইত্যাদি এখানে লিখুন..."></textarea>
-        </div>
-        <button class="submit-btn" onclick="addNewProductToFirebase()">UPLOAD PRODUCT</button>
+<div class="auth-overlay" id="adminAuthOverlay">
+    <div class="auth-box">
+        <h2>RYE ON</h2>
+        <p>অ্যাডমিন প্যানেলে প্রবেশ করতে গোপন সিকিউরিটি পাসওয়ার্ডটি দিন</p>
+        <input type="password" id="adminPasswordInput" placeholder="Enter Password" onkeypress="handleAuthKeyPress(event)">
+        <button onclick="verifyAdminPassword()">LOGIN AS ADMIN</button>
     </div>
+</div>
 
-    <div class="card">
-        <h2><i class="fa-solid fa-shopping-bag"></i> কাস্টমারদের অর্ডার লিস্ট (Live Orders)</h2>
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>অর্ডার আইডি / তারিখ</th>
-                        <th>কাস্টমার তথ্য</th>
-                        <th>পূর্ণাঙ্গ ঠিকানা (Address)</th>
-                        <th>প্রোডাক্টসমূহ</th>
-                        <th>মোট বিল</th>
-                        <th>অ্যাকশন</th>
-                    </tr>
-                </thead>
-                <tbody id="ordersTableBody">
-                    <tr>
-                        <td colspan="6" class="empty-msg">ডাটা লোড হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন...</td>
-                    </tr>
-                </tbody>
-            </table>
+<div class="admin-main-wrapper" id="adminMainWrapper">
+    <header>
+        <h1>RYE ON - Admin Panel</h1>
+        <div><span class="badge" id="totalOrdersBadge">0 Orders</span></div>
+    </header>
+
+    <div class="admin-container">
+        <div class="card">
+            <h2><i class="fa-solid fa-plus-circle"></i> নতুন প্রোডাক্ট অ্যাড করুন</h2>
+            <div class="form-group">
+                <label>কাপড়ের নাম (Product Title) *</label>
+                <input type="text" id="pName" placeholder="যেমন: Premium Casual Shirt">
+            </div>
+            <div class="form-group">
+                <label>দাম (Price BDT) *</label>
+                <input type="number" id="pPrice" placeholder="যেমন: 450">
+            </div>
+            <div class="form-group">
+                <label>ইমেজ লিংক (Image URL) *</label>
+                <input type="url" id="pImg" placeholder="https://images.unsplash.com/...">
+            </div>
+            <div class="form-group">
+                <label>বিবরণ / ডেসক্রিপশন (Short Description)</label>
+                <textarea id="pDesc" placeholder="কাপড়ের সাইজ, ফেব্রিক্স ইত্যাদি এখানে লিখুন..."></textarea>
+            </div>
+            <button class="submit-btn" onclick="addNewProductToFirebase()">UPLOAD PRODUCT</button>
+        </div>
+
+        <div class="card">
+            <h2><i class="fa-solid fa-shopping-bag"></i> কাস্টমারদের অর্ডার লিস্ট (Live Orders)</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>অর্ডার আইডি / তারিখ</th>
+                            <th>কাস্টমার তথ্য</th>
+                            <th>পূর্ণাঙ্গ ঠিকানা (Address)</th>
+                            <th>প্রোডাক্টসমূহ</th>
+                            <th>মোট বিল</th>
+                            <th>অ্যাকশন</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <tr>
+                            <td colspan="6" class="empty-msg">ডাটা লোড হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
 </div>
 
 <script>
@@ -115,9 +136,28 @@
         measurementId: "G-23JJYB0XF7"
     };
 
-    // Firebase ইনিশিয়ালাইজেশন
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+
+    // 🔒 পাসওয়ার্ড চেক করার ফাংশন
+    function verifyAdminPassword() {
+        const enteredPass = document.getElementById('adminPasswordInput').value;
+        const correctPass = "ryeon1122"; // 👈 আপনার সেট করা পাসওয়ার্ড
+
+        if(enteredPass === correctPass) {
+            document.getElementById('adminAuthOverlay').style.display = 'none';
+            document.getElementById('adminMainWrapper').style.display = 'block';
+            listenLiveOrders(); // পাসওয়ার্ড মিললে লাইভ ডাটা লোড হবে
+        } else {
+            alert("❌ ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।");
+            document.getElementById('adminPasswordInput').value = "";
+        }
+    }
+
+    // এন্টার বাটন চাপলে যেন লগইন হয়
+    function handleAuthKeyPress(e) {
+        if(e.key === 'Enter') { verifyAdminPassword(); }
+    }
 
     // 🚀 ১. ফায়ারবেসে নতুন প্রোডাক্ট অ্যাড করা
     function addNewProductToFirebase() {
@@ -168,19 +208,17 @@
                 return;
             }
 
-            const orderKeys = Object.keys(data).reverse(); // লেটেস্ট অর্ডার উপরে থাকবে
+            const orderKeys = Object.keys(data).reverse();
             badge.innerText = orderKeys.length + " Orders";
 
             orderKeys.forEach(key => {
                 const order = data[key];
                 
-                // 🛠️ কাস্টম লোকেশন ফিল্টারিং টেক্সট লজিক
                 let villageDisplay = order.customerVillage;
                 if(villageDisplay === "CustomLocation") {
                     villageDisplay = "অন্যান্য (কাস্টম লোকেশন)";
                 }
 
-                // ঠিকানা ফরম্যাটিং
                 const fullAddress = `
                     <div class="address-box">
                         <strong>জেলা:</strong> ${order.customerDistrict || 'N/A'}<br>
@@ -228,8 +266,6 @@
             });
         }
     }
-
-    window.onload = listenLiveOrders;
 </script>
 </body>
 </html>
