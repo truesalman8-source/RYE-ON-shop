@@ -80,7 +80,7 @@
         <div class="header-container">
             <a href="#" class="logo">RYE ON</a>
             <div class="search-box">
-                <input type="text" id="searchInput" onkeyup="searchProducts()" placeholder="Search in RYE ON...">
+                <input type="text" id="searchInput" placeholder="Search in RYE ON...">
                 <button><i class="fa-solid fa-magnifying-glass"></i></button>
             </div>
             <div class="header-actions">
@@ -111,7 +111,7 @@
             <p style="text-align: center; color: #999; margin-top: 30px;" id="emptyCartMessage">Your cart is empty!</p>
         </div>
         <div class="cart-footer">
-            <div class="total-row"><span>Total Amount:</span><span style="color: var(--daraz-orange)">৳<span id="totalBillAmount">0</span></span></div>
+            <div class="total-row" style="display:flex; justify-content:space-between; margin:15px 0; font-weight:bold;"><span>Total Amount:</span><span style="color: var(--daraz-orange)">৳<span id="totalBillAmount">0</span></span></div>
             <button class="checkout-btn" style="background:#f57224; color:white; border:none; width:100%; padding:12px; font-weight:bold; cursor:pointer;" onclick="openCheckoutPage('cart')">PROCEED TO CHECKOUT</button>
         </div>
     </div>
@@ -169,7 +169,7 @@
         </div>
         <div class="checkout-right">
             <h3>অর্ডার সামারি</h3>
-            <div id="checkoutItemsList" style="max-height:150px; overflow-y:auto; margin-bottom:15px;"></div>
+            <div id="checkoutItemsList" style="max-height:150px; overflow-y:auto; margin-bottom:15px; font-size:13px; color:#555;"></div>
             <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Subtotal:</span><span>৳<span id="subTotalAmt">0</span></span></div>
             <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Delivery Cost:</span><span>৳<span id="deliveryCostAmt">80</span></span></div>
             <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--daraz-orange); font-size:18px; margin-top:10px; border-top:1px solid #ddd; padding-top:10px;">
@@ -203,7 +203,7 @@
     const madaripurData = {
         "Kalkini": { name: "কালকিনি (Kalkini)", villages: ["কালকিনি পৌরসভা", "গোপালপুর", "কাজীবাকাই", "বালিগ্রাম", "ডাসার", "নবগ্রাম", "আলীনগর", "এনায়েতনগর", "রমজানপুর", "শিকারমঙ্গল", "সাহেবরামপুর", "চরদৌলতখান", "ক্রীড়াধরপুর", "লক্ষ্মীপুর", "বাঁশগাড়ী"] },
         "Madaripur Sadar": { name: "মাদারীপুর সদর (Madaripur Sadar)", villages: ["মাদারীপুর পৌরসভা", "খাগদি", "চরমুগুরিয়া", "বাহাদুরপুর", "কুনিয়া", "পেয়ারপুর", "মোস্তফাপুর", "কালিকাপুর", "রাস্তী", "খোয়াজপুর", "ঝাউদি", "ধুরাইল", "শিরখাড়া", "মস্তফাপুর", "ঘেঁটুয়ারচর"] },
-        "Shibchar": { name: "শিবচর (Shibchar)", villages: ["শিবচর পৌরসভা", "উত্তরাঞ্চল", "দত্তপাড়া", "কুতুবপুর", "कাদিরপুর", "দ্বিতীয়খন্ড", "ভান্ডারীকান্দি", "বহেরাভেড়াতলা", "সন্যাসীরচর", "শিরুয়াইল", "নিলখী", "বাঁশকান্দি", "চরজানাজাত", "মাদবরেরচর"] },
+        "Shibchar": { name: "শিবচর (Shibchar)", villages: ["শিবচর পৌরসভা", "উত্তরাঞ্চল", "দত্তপাড়া", "কুতুবপুর", "কাদিরপুর", "দ্বিতীয়খন্ড", "ভান্ডারীকান্দি", "বহেরাভেড়াতলা", "সন্যাসীরচর", "শিরুয়াইল", "নিলখী", "বাঁশকান্দি", "চরজানাজাত", "মাদবরেরচর"] },
         "Rajoir": { name: "রাজৈর (Rajoir)", villages: ["রাজৈর পৌরসভা", "টেকেরহাট", "খালিয়া", "আমগ্রাম", "কদমবাড়ী", "বজলু", "পাইকপাড়া", "ইশিবপুর", "বাজিতপুর", "হোসেনপুর", "কবিরাজপুর", "সাতপাড়"] }
     };
 
@@ -236,7 +236,6 @@
         vSelect.innerHTML = "";
         if(madaripurData[upKey]) {
             madaripurData[upKey].villages.forEach(v => { vSelect.innerHTML += `<option value="${v}">${v}</option>`; });
-            // 🌟 ড্রপডাউনের ভেতরেই ৪ নম্বর অপশন: অন্যান্য (হাতে লিখুন)
             vSelect.innerHTML += `<option value="CustomLocation">অন্যান্য (হাতে লিখুন)</option>`;
             handleVillageDropdownChange();
         }
@@ -277,6 +276,10 @@
                         <div class="product-info">
                             <h4 class="product-title">${p.name}</h4>
                             <div class="product-price">৳${p.price}</div>
+                            <div class="card-action-btns" onclick="event.stopPropagation();">
+                                <button class="add-to-cart-btn" onclick="addItemToCart('${p.name}', ${p.price}, '${p.img}')">Add Cart</button>
+                                <button class="buy-now-btn" onclick="buyNowInstant('${p.name}', ${p.price})">Buy Now</button>
+                            </div>
                         </div>
                     </div>`;
             });
@@ -294,20 +297,57 @@
     }
 
     function closeDetailsPage() { document.getElementById('productDetailsOverlay').style.display = 'none'; }
+    
     function toggleCart() { document.getElementById('cartSidebar').classList.toggle('open'); }
+    
+    function addItemToCart(name, price, img) { 
+        shoppingCart.push({ name, price, img }); 
+        updateDarazCartUI(); 
+    }
+    
+    function updateDarazCartUI() {
+        document.getElementById('cartCountBadge').innerText = shoppingCart.length;
+        document.getElementById('sidebarCount').innerText = shoppingCart.length;
+        const list = document.getElementById('sidebarItemsList');
+        
+        // ডিলিট মেসেজ ফিক্স
+        if(shoppingCart.length > 0) {
+            document.getElementById('emptyCartMessage').style.display = 'none';
+        } else {
+            document.getElementById('emptyCartMessage').style.display = 'block';
+        }
+
+        list.querySelectorAll('.cart-item').forEach(el => el.remove());
+        let total = 0;
+        shoppingCart.forEach((item) => {
+            total += item.price;
+            list.innerHTML += `<div class="cart-item"><img src="${item.img}"><div><h4>${item.name}</h4><span>৳${item.price}</span></div></div>`;
+        });
+        document.getElementById('totalBillAmount').innerText = total;
+    }
+
     function buyNowInstant(name, price) { openCheckoutPage('instant', name, price); }
 
     function openCheckoutPage(type, name='', price=0) {
-        checkoutItems = [{ name, price }];
+        if(type === 'cart') { 
+            if(shoppingCart.length === 0) { alert("আপনার কার্ট খালি!"); return; }
+            checkoutItems = [...shoppingCart]; 
+        } else { 
+            checkoutItems = [{ name, price }]; 
+        }
+        
         const list = document.getElementById('checkoutItemsList');
-        list.innerHTML = `<div>${name} - ৳${price}</div>`;
-        document.getElementById('subTotalAmt').innerText = price;
+        list.innerHTML = '';
+        let sub = 0;
+        checkoutItems.forEach(i => { sub += i.price; list.innerHTML += `<div>• ${i.name} (৳${i.price})</div>`; });
+        document.getElementById('subTotalAmt').innerText = sub;
         recalculateDeliveryCharge();
         handleDistrictChange();
         document.getElementById('checkoutOverlay').style.display = 'flex';
     }
 
     function closeCheckoutPage() { document.getElementById('checkoutOverlay').style.display = 'none'; }
+    
     function recalculateDeliveryCharge() {
         let del = document.getElementById('paymentMethod').value === "Cash on Delivery" ? 80 : 60;
         document.getElementById('deliveryCostAmt').innerText = del;
@@ -315,40 +355,48 @@
     }
 
     function confirmFinalOrder() {
-        const name = document.getElementById('custName').value;
-        const phone = document.getElementById('custPhone').value;
+        const name = document.getElementById('custName').value.trim();
+        const phone = document.getElementById('custPhone').value.trim();
         
-        let dist = document.getElementById('custDistrict').value === "Other" ? document.getElementById('custDistrictManual').value : "মাদারীপুর";
-        let up = document.getElementById('custDistrict').value === "Other" ? document.getElementById('custUpazilaManual').value : madaripurData[document.getElementById('custUpazila').value].name;
+        let dist = document.getElementById('custDistrict').value === "Other" ? document.getElementById('custDistrictManual').value.trim() : "মাদারীপুর";
+        let up = document.getElementById('custDistrict').value === "Other" ? document.getElementById('custUpazilaManual').value.trim() : madaripurData[document.getElementById('custUpazila').value].name;
         
         let vil = "";
-        // যদি ড্রপডাউনে 'CustomLocation' সিলেক্ট করা থাকে তবে টাইপ করা নাম নিবে
         if(document.getElementById('custDistrict').value === "Other" || document.getElementById('custVillage').value === "CustomLocation") {
-            vil = document.getElementById('custVillageManual').value;
+            vil = document.getElementById('custVillageManual').value.trim();
         } else {
             vil = document.getElementById('custVillage').value;
         }
 
-        if(!phone || !vil) { alert("সব তথ্য সঠিকভাবে দিন!"); return; }
+        if(!name || !phone || !vil) { alert("অনুগ্রহ করে সব তথ্য সঠিকভাবে দিন!"); return; }
 
         const orderId = Date.now();
+        const productString = checkoutItems.map(i => i.name).join(', ');
+
         const orderData = {
             id: orderId,
             customerName: name,
             customerPhone: phone,
             customerDistrict: dist,
             customerUpazila: up,
-            customerVillage: vil, // ✍️ কাস্টম নাম বা ড্রপডাউনের নাম ফায়ারবেসে সরাসরি সেভ হবে
-            products: checkoutItems.map(i => i.name).join(', '),
+            customerVillage: vil, 
+            products: productString,
             totalPrice: document.getElementById('finalBillAmt').innerText,
             paymentMethod: document.getElementById('paymentMethod').value,
             date: new Date().toLocaleString('bn-BD')
         };
 
-        database.ref('orders/' + orderId).set(orderData).then(() => {
-            alert("অর্ডার সফল হয়েছে!");
+        // 🚀 ফায়ারবেস রিয়েলটাইম ডাটাবেজে ডাটা পুশ করা হচ্ছে
+        database.ref('orders/' + orderId).set(orderData)
+        .then(() => {
+            alert("🎉 আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে!");
+            shoppingCart = [];
+            updateDarazCartUI();
             closeCheckoutPage();
             location.reload();
+        })
+        .catch((error) => {
+            alert("অর্ডার সাবমিট করতে সমস্যা হয়েছে: " + error.message);
         });
     }
 </script>
